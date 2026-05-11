@@ -1,6 +1,5 @@
 import telebot
 
-# --- CONFIGURACIÓN ---
 API_TOKEN = '8434419214:AAECtjHW0mJTXYFtlNIKmDhFaV9OIXQf22E'
 bot = telebot.TeleBot(API_TOKEN)
 
@@ -18,7 +17,18 @@ def poner_portada(message):
         bot.reply_to(message, "❌ Envía primero una foto.")
         return
     
-    bot.reply_to(message, "⏳ Poniendo portada... (esto es rápido)")
-    bot.send_video(message.chat.id, message.video.file_id, thumb=foto_id, caption=message.caption or "")
+    bot.reply_to(message, "🚀 Procesando... Esto será casi instantáneo.")
+    
+    try:
+        # Usamos send_video con el file_id original para que sea ultra rápido
+        bot.send_video(
+            message.chat.id, 
+            message.video.file_id, 
+            thumb=foto_id, 
+            caption=message.caption or "",
+            supports_streaming=True # Esto ayuda a que se vea de inmediato
+        )
+    except Exception as e:
+        bot.reply_to(message, f"❌ Error: {e}\nIntenta con un video más pequeño o revisa tu conexión.")
 
 bot.infinity_polling()
