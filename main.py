@@ -1,34 +1,33 @@
 import telebot
 
+# Tu Token
 API_TOKEN = '8434419214:AAECtjHW0mJTXYFtlNIKmDhFaV9OIXQf22E'
 bot = telebot.TeleBot(API_TOKEN)
 
-user_data = {}
+# Guardar la foto en memoria rápida
+portadas = {}
 
 @bot.message_handler(content_types=['photo'])
-def guardar_portada(message):
-    user_data[message.chat.id] = message.photo[-1].file_id
-    bot.reply_to(message, "✅ Portada guardada. Ahora pásame el video.")
+def guardar(message):
+    portadas[message.chat.id] = message.photo[-1].file_id
+    bot.send_message(message.chat.id, "✅ Portada lista. Pásame el video.")
 
 @bot.message_handler(content_types=['video'])
-def poner_portada(message):
-    foto_id = user_data.get(message.chat.id)
-    if not foto_id:
-        bot.reply_to(message, "❌ Envía primero una foto.")
+def procesar(message):
+    if message.chat.id not in portadas:
+        bot.send_message(message.chat.id, "❌ Primero manda la foto.")
         return
     
-    bot.reply_to(message, "🚀 Procesando... Esto será casi instantáneo.")
-    
+    # Esto es lo más rápido que permite Telegram
     try:
-        # Usamos send_video con el file_id original para que sea ultra rápido
         bot.send_video(
             message.chat.id, 
             message.video.file_id, 
-            thumb=foto_id, 
-            caption=message.caption or "",
-            supports_streaming=True # Esto ayuda a que se vea de inmediato
+            thumb=portadas[message.chat.id],
+            caption=message.caption or "Copiado con éxito"
         )
     except Exception as e:
-        bot.reply_to(message, f"❌ Error: {e}\nIntenta con un video más pequeño o revisa tu conexión.")
+        bot.send_message(message.chat.id, f"Hubo un error: {e}")
 
-bot.infinity_polling()
+# Esto evita que el bot se caiga por errores tontos
+bot.infinity_polling(timeout=10, long_polling_timeout=5)
